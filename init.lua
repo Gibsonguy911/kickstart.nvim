@@ -232,18 +232,28 @@ require('lazy').setup({
   -- with the first argument being the link and the following
   -- keys can be used to configure plugin behavior/loading/etc.
 
+  { 'github/copilot.vim' },
   {
-    'OmniSharp/omnisharp-vim',
-    config = function()
-      vim.g.OmniSharp_highlighting = 0
-    end,
-  },
-
-  {
-    'github/copilot.vim',
-    config = function()
-      vim.g.copilot_enabled = true
-    end,
+    'CopilotC-Nvim/CopilotChat.nvim',
+    branch = 'canary',
+    dependencies = {
+      { 'github/copilot.vim' },
+      { 'nvim-lua/plenary.nvim' },
+    },
+    opts = { debug = true },
+    keys = {
+      {
+        '<leader>ccq',
+        function()
+          local input = vim.fn.input 'Quick Chat: '
+          if input ~= '' then
+            require('CopilotChat').ask(input, { selection = require('CopilotChat.select').buffer })
+          end
+        end,
+        mode = 'n',
+        desc = 'Open [C]opilot [C]hat',
+      },
+    },
   },
   -- Use `opts = {}` to force a plugin to be loaded.
   --
@@ -580,6 +590,20 @@ require('lazy').setup({
       local servers = {
         gopls = {},
         tsserver = {},
+        csharp_ls = {
+          settings = {
+            CSharp = {
+              formattingOptions = {
+                -- Add your formatting options here
+                -- For example:
+                indentationSize = 0,
+                tabSize = 0,
+                newLineCharacter = '\n',
+                insertSpaces = true,
+              },
+            },
+          },
+        },
         -- pyright = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
@@ -619,6 +643,7 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        'prettierd', -- Used to format JavaScript code
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -669,7 +694,7 @@ require('lazy').setup({
         --
         -- You can use a sub-list to tell conform to run *until* a formatter
         -- is found.
-        -- javascript = { { "prettierd", "prettier" } },
+        javascript = { { 'prettierd', 'prettier' } },
       },
     },
   },
@@ -741,12 +766,12 @@ require('lazy').setup({
           -- Accept ([y]es) the completion.
           --  This will auto-import if your LSP supports it.
           --  This will expand snippets if the LSP sent a snippet.
-          ['<C-y>'] = cmp.mapping.confirm { select = true },
+          --['<C-y>'] = cmp.mapping.confirm { select = true },
 
           -- If you prefer more traditional completion keymaps,
           -- you can uncomment the following lines
           --['<CR>'] = cmp.mapping.confirm { select = true },
-          --['<Tab>'] = cmp.mapping.select_next_item(),
+          ['<CR>'] = cmp.mapping.confirm { select = true },
           --['<S-Tab>'] = cmp.mapping.select_prev_item(),
 
           -- Manually trigger a completion from nvim-cmp.
@@ -855,9 +880,9 @@ require('lazy').setup({
         -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
         --  If you are experiencing weird indenting issues, add the language to
         --  the list of additional_vim_regex_highlighting and disabled languages for indent.
-        additional_vim_regex_highlighting = { 'ruby' },
+        additional_vim_regex_highlighting = { 'ruby', 'cs', 'csharp' },
       },
-      indent = { enable = true, disable = { 'ruby' } },
+      indent = { enable = true, disable = { 'ruby', 'cs', 'csharp' } },
     },
     config = function(_, opts)
       -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
