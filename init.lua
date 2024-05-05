@@ -104,6 +104,14 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+-- Keybinds for easy line movements
+-- Move single lines up and down
+vim.keymap.set('n', '<A-j>', '<cmd>m .+1<CR>==', { desc = 'Move current line down' })
+vim.keymap.set('n', '<A-k>', '<cmd>m .-2<CR>==', { desc = 'Move current line up' })
+-- move visual block up and down
+vim.keymap.set('x', '<A-j>', ":move '>+1<CR>gv-gv", { desc = 'Move selected lines down' })
+vim.keymap.set('x', '<A-k>', ":move '<-2<CR>gv-gv", { desc = 'Move selected lines up' })
+
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -147,6 +155,7 @@ require('lazy').setup({
   -- keys can be used to configure plugin behavior/loading/etc.
 
   --  NOTE: CUSTOM PLUGINS NOT APART OF DEFAULT KICKSTART --
+  { 'm4xshen/autoclose.nvim', opts = {} },
   { 'github/copilot.vim' },
   {
     'CopilotC-Nvim/CopilotChat.nvim',
@@ -216,7 +225,88 @@ require('lazy').setup({
           adapter_name = 'netcoredbg',
         },
       }
+
+      local get_namespace = function(type)
+        -- Get the directory of the current buffer
+        local current_dir = vim.fn.expand '%:p:h'
+
+        -- Get the directory that is currently opened in Neovim
+        local opened_dir = vim.fn.getcwd()
+
+        -- Start from the current directory and move up the directory tree
+        while current_dir ~= opened_dir do
+          -- Execute a shell command to find a .csproj file in the current directory
+          local handle = io.popen('find ' .. current_dir .. ' -maxdepth 1 -name "*.csproj" -print -quit')
+          if not handle then
+            return
+          end
+          local result = handle:read '*a'
+          handle:close()
+
+          -- Remove trailing newline from result
+          result = result:gsub('\n', '')
+
+          -- If a .csproj file was found
+          if result ~= '' then
+            -- Get the filename of the .csproj file without the extension
+            local filename = vim.fn.fnamemodify(result, ':t:r')
+
+            -- Get the directories from the .csproj file to the current file
+            local directories = vim.fn.fnamemodify(vim.fn.expand '%:p', ':h'):sub(#current_dir)
+
+            -- Replace slashes with dots
+            directories = directories:gsub('/', '.')
+
+            -- Construct the namespace string
+            local namespace = 'namespace ' .. filename .. directories .. ';'
+            local class = 'public ' .. type .. ' ' .. vim.fn.fnamemodify(vim.fn.expand '%:t', ':r')
+            vim.api.nvim_buf_set_lines(0, 0, 1, false, { namespace, '', class, '{', '', '}' })
+            --vim.api.nvim_put({ namespace, '', class, '{', '', '}' }, 'l', false, false)
+
+            -- Move cursor to the class body
+            vim.api.nvim_win_set_cursor(0, { 5, 0 })
+            -- save current file
+            vim.cmd 'w'
+            return
+          end
+
+          -- Move up to the parent directory
+          current_dir = current_dir:match '(.*[/\\])'
+        end
+
+        print 'No .csproj file found'
+      end
+
+      -- Keymaps --
+      vim.keymap.set('n', '<leader>tc', function()
+        get_namespace 'class'
+      end, { desc = 'CSharp [T]emplate [C]lass' })
+      vim.keymap.set('n', '<leader>ti', function()
+        get_namespace 'interface'
+      end, { desc = 'CSharp [T]emplate [I]nterface' })
+      vim.keymap.set('n', '<leader>ts', function()
+        get_namespace 'struct'
+      end, { desc = 'CSharp [T]emplate [S]truct' })
+      vim.keymap.set('n', '<leader>te', function()
+        get_namespace 'enum'
+      end, { desc = 'CSharp [T]emplate [E]num' })
     end,
+  },
+
+  -- File Explorer
+  {
+    'stevearc/oil.nvim',
+    opts = {},
+    keys = {
+      {
+        '<leader>o',
+        function()
+          require('oil').open()
+        end,
+        mode = 'n',
+        desc = 'Toggle [O]il file explorer',
+      },
+    },
   },
   -- END OF CUSTOM PLUGINS --
 
@@ -239,7 +329,7 @@ require('lazy').setup({
         ['<leader>r'] = { name = '[R]ename', _ = 'which_key_ignore' },
         ['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
         ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
-        ['<leader>t'] = { name = '[T]oggle', _ = 'which_key_ignore' },
+        --['<leader>t'] = { name = '[T]oggle', _ = 'which_key_ignore' },
         ['<leader>h'] = { name = 'Git [H]unk', _ = 'which_key_ignore' },
       }
       -- visual mode
@@ -677,12 +767,12 @@ require('lazy').setup({
           -- `friendly-snippets` contains a variety of premade snippets.
           --    See the README about individual language/framework/plugin snippets:
           --    https://github.com/rafamadriz/friendly-snippets
-          -- {
-          --   'rafamadriz/friendly-snippets',
-          --   config = function()
-          --     require('luasnip.loaders.from_vscode').lazy_load()
-          --   end,
-          -- },
+          {
+            'rafamadriz/friendly-snippets',
+            config = function()
+              require('luasnip.loaders.from_vscode').lazy_load()
+            end,
+          },
         },
       },
       'saadparwaiz1/cmp_luasnip',
