@@ -112,6 +112,10 @@ vim.keymap.set('n', '<A-k>', '<cmd>m .-2<CR>==', { desc = 'Move current line up'
 vim.keymap.set('x', '<A-j>', ":move '>+1<CR>gv-gv", { desc = 'Move selected lines down' })
 vim.keymap.set('x', '<A-k>', ":move '<-2<CR>gv-gv", { desc = 'Move selected lines up' })
 
+-- Keybinds for easy indenting
+vim.keymap.set('x', '<Tab>', '>gv', { desc = 'Indent selected lines to the right' })
+vim.keymap.set('x', '<S-Tab>', '<gv', { desc = 'Indent selected lines to the left' })
+
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -437,11 +441,12 @@ require('lazy').setup({
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
         --
-        -- defaults = {
-        --   mappings = {
-        --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-        --   },
-        -- },
+        defaults = {
+          --   mappings = {
+          --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
+          --   },
+          file_ignore_patterns = { 'Migrations/' },
+        },
         -- pickers = {}
         extensions = {
           ['ui-select'] = {
@@ -928,9 +933,9 @@ require('lazy').setup({
         -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
         --  If you are experiencing weird indenting issues, add the language to
         --  the list of additional_vim_regex_highlighting and disabled languages for indent.
-        additional_vim_regex_highlighting = { 'ruby', 'c_sharp' },
+        additional_vim_regex_highlighting = { 'ruby' },
       },
-      indent = { enable = true, disable = { 'ruby', 'c_sharp' } },
+      indent = { enable = true, disable = { 'ruby' } },
     },
     config = function(_, opts)
       -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
