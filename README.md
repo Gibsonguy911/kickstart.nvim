@@ -24,6 +24,7 @@ If you are experiencing issues, please make sure you have the latest versions.
 External Requirements:
 - Basic utils: `git`, `make`, `unzip`, C Compiler (`gcc`)
 - [ripgrep](https://github.com/BurntSushi/ripgrep#installation)
+- [fd](https://github.com/sharkdp/fd)
 - Clipboard tool (xclip/xsel/win32yank or other depending on platform)
 - A [Nerd Font](https://www.nerdfonts.com/): optional, provides various icons
   - if you have it set `vim.g.have_nerd_font` in `init.lua` to true
@@ -226,4 +227,12 @@ sudo dnf install -y gcc make git ripgrep fd-find unzip neovim
 sudo pacman -S --noconfirm --needed gcc make git ripgrep fd unzip neovim
 ```
 </details>
+
+# CSharp
+Add the following to the .csproj file to point to the .editorconfig file stored in this repository.
+```xml
+  <ItemGroup>
+    <EditorConfigFiles Include="/home/sully/.config/nvim/.editorconfig" />
+  </ItemGroup>
+```
 
