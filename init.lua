@@ -196,13 +196,13 @@ require('lazy').setup({
   -- CSharp LSP Configuration
   {
     'iabdelkareem/csharp.nvim',
+    ft = 'cs',
     dependencies = {
       'williamboman/mason.nvim',
       'mfussenegger/nvim-dap',
       'Tastyep/structlog.nvim',
     },
     config = function()
-      require('mason').setup()
       require('csharp').setup {
         lsp = {
           -- When set to false, csharp.nvim won't launch omnisharp automatically.
