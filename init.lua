@@ -116,6 +116,9 @@ vim.keymap.set('x', '<A-k>', ":move '<-2<CR>gv-gv", { desc = 'Move selected line
 vim.keymap.set('x', '<Tab>', '>gv', { desc = 'Indent selected lines to the right' })
 vim.keymap.set('x', '<S-Tab>', '<gv', { desc = 'Indent selected lines to the left' })
 
+-- Keybinds for buffers
+vim.keymap.set('n', '<leader>q', '<cmd>bd<CR>', { desc = 'Close buffer' })
+
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -159,6 +162,12 @@ require('lazy').setup({
   -- keys can be used to configure plugin behavior/loading/etc.
 
   --  NOTE: CUSTOM PLUGINS NOT APART OF DEFAULT KICKSTART --
+  {
+    'xiyaowong/transparent.nvim',
+    setup = function()
+      vim.g.transparent_groups = vim.list_extend(vim.g.transparent_groups or {}, { 'ExtraGroup', 'NormalFloat', 'NvimTreeNormal' })
+    end,
+  },
   { 'm4xshen/autoclose.nvim', opts = {} },
   { 'github/copilot.vim' },
   {
@@ -226,59 +235,69 @@ require('lazy').setup({
         dap = {
           -- When set, csharp.nvim won't launch install and debugger automatically. Instead, it'll use the debug adapter specified.
           --- @type string?
-          adapter_name = 'netcoredbg',
+          adapter_name = nil,
         },
       }
 
-      local get_namespace = function(type)
+      local get_project_name = function()
         -- Get the directory of the current buffer
         local current_dir = vim.fn.expand '%:p:h'
 
         -- Get the directory that is currently opened in Neovim
         local opened_dir = vim.fn.getcwd()
 
+        local project_name = nil
+
         -- Start from the current directory and move up the directory tree
         while current_dir ~= opened_dir do
           -- Execute a shell command to find a .csproj file in the current directory
           local handle = io.popen('find ' .. current_dir .. ' -maxdepth 1 -name "*.csproj" -print -quit')
           if not handle then
-            return
+            break
           end
           local result = handle:read '*a'
           handle:close()
 
           -- Remove trailing newline from result
           result = result:gsub('\n', '')
-
-          -- If a .csproj file was found
           if result ~= '' then
             -- Get the filename of the .csproj file without the extension
             local filename = vim.fn.fnamemodify(result, ':t:r')
 
-            -- Get the directories from the .csproj file to the current file
-            local directories = vim.fn.fnamemodify(vim.fn.expand '%:p', ':h'):sub(#current_dir)
-
-            -- Replace slashes with dots
-            directories = directories:gsub('/', '.')
-
-            -- Construct the namespace string
-            local namespace = 'namespace ' .. filename .. directories .. ';'
-            local class = 'public ' .. type .. ' ' .. vim.fn.fnamemodify(vim.fn.expand '%:t', ':r')
-            vim.api.nvim_buf_set_lines(0, 0, 1, false, { namespace, '', class, '{', '', '}' })
-            --vim.api.nvim_put({ namespace, '', class, '{', '', '}' }, 'l', false, false)
-
-            -- Move cursor to the class body
-            vim.api.nvim_win_set_cursor(0, { 5, 0 })
-            -- save current file
-            vim.cmd 'w'
-            return
+            project_name = filename
+            break
           end
 
           -- Move up to the parent directory
           current_dir = current_dir:match '(.*[/\\])'
         end
 
-        print 'No .csproj file found'
+        return project_name
+      end
+
+      local get_namespace = function(type)
+        local project_name = get_project_name()
+        if project_name == nil then
+          print 'No .csproj file found'
+          return
+        end
+
+        -- Get the directory of the current buffer
+        local current_dir = vim.fn.expand '%:p:h'
+        -- Get the directories from the .csproj file to the current file
+        local directories = string.gsub(current_dir, '^.*' .. project_name, '')
+
+        -- Replace slashes with dots
+        directories = directories:gsub('/', '.')
+        -- Construct the namespace string
+        local namespace = 'namespace ' .. project_name .. directories .. ';'
+        local class = 'public ' .. type .. ' ' .. vim.fn.fnamemodify(vim.fn.expand '%:t', ':r')
+        vim.api.nvim_buf_set_lines(0, 0, 1, false, { namespace, '', class, '{', '', '}' })
+
+        -- Move cursor to the class body
+        vim.api.nvim_win_set_cursor(0, { 5, 0 })
+        -- save current file
+        vim.cmd 'w'
       end
 
       -- Keymaps --
@@ -294,6 +313,50 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>te', function()
         get_namespace 'enum'
       end, { desc = 'CSharp [T]emplate [E]num' })
+
+      vim.keymap.set('n', '<leader>cgd', function()
+        require('csharp').go_to_definition()
+      end, { desc = 'CSharp [C]sharp [G]o to [D]efinition' })
+      vim.keymap.set('n', '<leader>cfa', function()
+        require('csharp').fix_all()
+      end, { desc = 'CSharp [C]sharp [F]ix [A]ll' })
+      vim.keymap.set('n', '<leader>cfu', function()
+        require('csharp').fix_usings()
+      end, { desc = 'CSharp [C]sharp [F]ix [U]sings' })
+      vim.keymap.set('n', '<leader>cd', function()
+        require('csharp').debug_project()
+      end, { desc = 'CSharp [C]sharp [D]ebug' })
+      vim.keymap.set('n', '<leader>cr', function()
+        require('csharp').run_project()
+      end, { desc = 'CSharp [C]sharp [R]un' })
+      vim.keymap.set('n', '<leader>cs', function()
+        local project_name = get_project_name()
+        if project_name == nil then
+          print 'No project found'
+          return
+        end
+        vim.fn.system('kill $(ps aux | grep ' .. project_name .. " | awk '{print $2}')")
+      end, { desc = 'CSharp [C]sharp [S]top' })
+
+      -- dap keymaps
+      vim.keymap.set('n', '<F9>', function()
+        require('dap').toggle_breakpoint()
+      end, { desc = 'Toggle [F9] breakpoint' })
+      vim.keymap.set('n', '<F10>', function()
+        require('dap').step_over()
+      end, { desc = 'Step [F10] over' })
+      vim.keymap.set('n', '<F11>', function()
+        require('dap').step_into()
+      end, { desc = 'Step [F11] into' })
+      vim.keymap.set('n', '<F12>', function()
+        require('dap').step_out()
+      end, { desc = 'Step [F12] out' })
+      vim.keymap.set('n', '<F5>', function()
+        require('dap').continue()
+      end, { desc = 'Continue [F5] Debugging' })
+      vim.keymap.set('n', '<F8>', function()
+        require('dap.ui.widgets').hover()
+      end, { desc = 'Show [F8] Hover' })
     end,
   },
 
@@ -878,6 +941,10 @@ require('lazy').setup({
 
       -- You can configure highlights by doing something like:
       vim.cmd.hi 'Comment gui=none'
+    end,
+    config = function(_, opts)
+      opts.transparent = vim.g.transparent_enabled
+      require('tokyonight').setup(opts)
     end,
   },
 
