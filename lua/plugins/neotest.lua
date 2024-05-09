@@ -58,11 +58,31 @@ return {
             },
             dotnet_additional_args = {
               '--verbosity detailed',
+              '/p:CollectCoverage=true',
+              '/p:CoverletOutputFormat=lcov',
+              '/p:CoverletOutput=' .. vim.fn.getcwd() .. '/tests/coverage/lcov.info',
+              '/p:Exclude=[*]*Migrations.*',
+              '/p:ExcludeByFile="**/Microsoft.NET.Test.Sdk.Program.cs"',
             },
             discovery_root = 'solution',
           },
         },
       }
+    end,
+  },
+  {
+    'andythigpen/nvim-coverage',
+    dependencies = { 'nvim-lua/plenary.nvim', 'Issafalcon/neotest-dotnet' },
+    config = function()
+      require('coverage').setup {
+        lcov_file = vim.fn.getcwd() .. '/tests/coverage/lcov.info',
+      }
+
+      vim.keymap.set('n', '<leader>ccs', require('coverage').summary, { desc = '[C]ode [C]overage [S]ummary' })
+      vim.keymap.set('n', '<leader>ccl', function()
+        require('coverage').load_lcov(nil, true)
+      end, { desc = '[C]ode [C]overage [L]oad' })
+      vim.keymap.set('n', '<leader>cct', require('coverage').toggle, { desc = '[C]ode [C]overage [T]oggle' })
     end,
   },
 }
