@@ -1,14 +1,32 @@
-vim.g.mapleader = " "
-vim.g.maplocalleader = " "
+vim.g.mapleader = ' '
+vim.g.maplocalleader = ' '
 
 vim.g.have_nerd_font = true
 
 vim.opt.number = true
 vim.opt.relativenumber = true
 
-vim.opt.mouse = "a"
+vim.opt.mouse = 'a'
 --vim.opt.showmode = false
-vim.opt.clipboard = "unnamedplus"
+vim.opt.clipboard = 'unnamedplus'
+vim.api.nvim_exec(
+  [[
+let g:clipboard = {
+  \   'name': 'win32yank-wsl',
+  \   'copy': {
+  \      '+': 'win32yank.exe -i --crlf',
+  \      '*': 'win32yank.exe -i --crlf',
+  \    },
+  \   'paste': {
+  \      '+': 'win32yank.exe -o --lf',
+  \      '*': 'win32yank.exe -o --lf',
+  \   },
+  \   'cache_enabled': 0,
+  \ } 
+]],
+  true
+)
+
 vim.opt.breakindent = true
 vim.opt.undofile = true
 
@@ -18,7 +36,7 @@ vim.opt.tabstop = 4
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
 
-vim.opt.signcolumn = "yes"
+vim.opt.signcolumn = 'yes'
 vim.opt.updatetime = 250
 
 -- Decrease mapped sequence wait time
@@ -32,10 +50,10 @@ vim.opt.splitbelow = true
 --  See `:help 'list'`
 --  and `:help 'listchars'`
 vim.opt.list = true
-vim.opt.listchars = { tab = "» ", trail = "·", nbsp = "␣" }
+vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
 
 -- Preview substitutions live, as you type!
-vim.opt.inccommand = "split"
+vim.opt.inccommand = 'split'
 
 -- Show which line your cursor is on
 vim.opt.cursorline = true
@@ -46,6 +64,6 @@ vim.opt.scrolloff = 20
 -- Set highlight on search, but clear on pressing <Esc> in normal mode
 vim.opt.hlsearch = true
 
-require("config")
+require 'config'
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
