@@ -44,6 +44,14 @@ return {
         mode = 'n',
         desc = '[T]est [D]ebug',
       },
+      {
+        '<leader>tp',
+        function()
+          require('neotest').run.run(vim.fn.getcwd())
+        end,
+        mode = 'n',
+        desc = '[T]est [P]roject',
+      },
     },
     config = function()
       ---@diagnostic disable-next-line: missing-fields

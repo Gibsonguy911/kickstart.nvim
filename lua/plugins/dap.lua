@@ -29,6 +29,7 @@ return {
             return vim.fn.input(
 
               'Path to dll: ',
+              ---@diagnostic disable-next-line: redundant-parameter
               (function()
                 local current_dir = vim.fn.expand '%:p:h'
                 local bin_dir = nil
@@ -56,6 +57,7 @@ return {
 
                 return 'no matching dll found'
               end)(),
+              ---@diagnostic disable-next-line: redundant-parameter
               'file'
             )
           end,
