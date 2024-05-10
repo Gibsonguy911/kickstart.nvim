@@ -160,38 +160,6 @@ return {
       capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
 
       local servers = {
-        omnisharp = {
-          on_attach = function(_, buf)
-            -- override default keymaps because we need to use omnisharp exteded for decompilation references
-            map('gd', require('omnisharp_extended').lsp_definition, buf, '[G]oto [R]eferences')
-            map('gr', require('omnisharp_extended').lsp_references, buf, '[G]oto [R]eferences')
-            map('gI', require('omnisharp_extended').lsp_implementation, buf, '[G]oto [I]mplementation')
-            map('<leader>D', require('omnisharp_extended').lsp_type_definition, buf, 'Type [D]efinition')
-
-            -- template keymaps
-            map('<leader>tc', function()
-              get_namespace 'class'
-            end, buf, '[T]emplate [C]lass')
-            map('<leader>ti', function()
-              get_namespace 'interface'
-            end, buf, '[T]emplate [I]nterface')
-            map('<leader>te', function()
-              get_namespace 'enum'
-            end, buf, '[T]emplate [E]num')
-          end,
-          settings = {
-            FormattingOptions = {
-              OrganizeImports = true,
-            },
-            RosylnExtensionsOptions = {
-              EnableAnalyzerSupport = true,
-              EnableImportCompletion = true,
-            },
-            Sdk = {
-              IncludePreleases = true,
-            },
-          },
-        },
         lua_ls = {
           -- cmd = {...},
           -- filetypes = { ...},
@@ -207,6 +175,7 @@ return {
           },
         },
         netcoredbg = {},
+        csharpier = {},
       }
 
       -- Ensure the servers and tools above are installed
@@ -228,6 +197,9 @@ return {
       require('mason-lspconfig').setup {
         handlers = {
           function(server_name)
+            if server_name == 'omnisharp' then
+              return
+            end
             local server = servers[server_name] or {}
             -- This handles overriding only values explicitly passed
             -- by the server configuration above. Useful when disabling

@@ -30,9 +30,10 @@ return {
     event = 'VeryLazy',
     config = function()
       require('notify').setup {
-        render = 'compact',
+        render = 'simple',
         stages = 'slide',
-        timeout = 5000,
+        timeout = 3000,
+        top_down = false,
       }
     end,
   },
