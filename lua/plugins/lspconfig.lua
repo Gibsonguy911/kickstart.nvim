@@ -90,7 +90,7 @@ return {
           if vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ':e') == 'cs' then
             map('gd', require('csharp').go_to_definition, event.buf, '[CS]: [G]oto [D]efinition')
 
-            map('<leader>cfu', require('chsarp').fix_usings, event.buf, '[C]#: [F]ix [U]sings')
+            map('<leader>cfu', require('csharp').fix_usings, event.buf, '[C]#: [F]ix [U]sings')
 
             -- template keymaps
             map('<leader>tc', function()
