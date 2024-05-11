@@ -10,8 +10,10 @@ vim.opt.relativenumber = true
 vim.opt.mouse = 'a'
 --vim.opt.showmode = false
 vim.opt.clipboard = 'unnamedplus'
-vim.api.nvim_exec(
-  [[
+if os.getenv 'WSL_DISTRO_NAME' ~= nil then
+  ---@diagnostic disable-next-line: undefined-field
+  vim.api.nvim_exec(
+    [[
 let g:clipboard = {
   \   'name': 'win32yank-wsl',
   \   'copy': {
@@ -25,8 +27,9 @@ let g:clipboard = {
   \   'cache_enabled': 0,
   \ } 
 ]],
-  true
-)
+    true
+  )
+end
 
 vim.opt.breakindent = true
 vim.opt.undofile = true

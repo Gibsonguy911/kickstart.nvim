@@ -7,6 +7,7 @@ return {
       { 'williamboman/mason.nvim', config = true }, -- NOTE: Must be loaded before dependants
       'williamboman/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
+
       -- Useful status updates for LSP.
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
       { 'j-hui/fidget.nvim', opts = {} },
@@ -29,11 +30,14 @@ return {
       },
     },
     config = function()
+      -- This is a helper function that creates a keymap for a specific buffer
       local map = function(keys, func, buf, desc)
-        vim.keymap.set('n', keys, func, { buffer = buf, desc = 'LSP: ' .. desc })
+        vim.keymap.set('n', keys, func, { buffer = buf, desc = desc })
       end
 
-      local get_namespace = function(type)
+      -- This is a helper function that creates a template for a specific buffer
+      -- This is specific to C# files and will create a class or interface template
+      local template_buffer = function(type)
         local current = vim.fn.expand '%:p'
         local dir = vim.fn.fnamemodify(current, ':h')
         local project_dir = vim.fn.getcwd()
@@ -72,16 +76,36 @@ return {
         vim.cmd 'w'
       end
 
+      -- autocommands are a way to run code when certain events happen in Neovim
+      -- In this case, we're running code when a new LSP client attaches to a buffer
+      -- This is useful because we can set up keymaps and other things that are specific
+      -- to the language server that is being attached to the buffer.
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
         callback = function(event)
           -- NOTE: Remember that Lua is a real programming language, and as such it is possible
           -- to define small helper and utility functions so you don't have to repeat yourself.
 
-          -- Jump to the definition of the word under your cursor.
-          --  This is where a variable was first declared, or where a function is defined, etc.
-          --  To jump back, press <C-t>.
-          map('gd', require('telescope.builtin').lsp_definitions, event.buf, '[G]oto [D]efinition')
+          -- Adding custom keymaps and templates for C# files
+          if vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ':e') == 'cs' then
+            map('gd', require('csharp').go_to_definition, event.buf, '[CS]: [G]oto [D]efinition')
+
+            map('<leader>cfu', require('chsarp').fix_usings, event.buf, '[C]#: [F]ix [U]sings')
+
+            -- template keymaps
+            map('<leader>tc', function()
+              template_buffer 'class'
+            end, event.buf, '[T]emplate [C]lass')
+            map('<leader>ti', function()
+              template_buffer 'interface'
+            end, event.buf, '[T]emplate [I]nterface')
+            map('<leader>te', function()
+              template_buffer 'enum'
+            end, event.buf, '[T]emplate [E]num')
+          else
+            --  To jump back, press <C-t>.
+            map('gd', require('telescope.builtin').lsp_definitions, event.buf, '[G]oto [D]efinition')
+          end
 
           -- Find references for the word under your cursor.
           map('gr', require('telescope.builtin').lsp_references, event.buf, '[G]oto [R]eferences')
@@ -174,6 +198,7 @@ return {
             },
           },
         },
+        omnisharp = {},
         netcoredbg = {},
         csharpier = {},
       }
