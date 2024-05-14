@@ -8,5 +8,10 @@ return {
       'MunifTanjim/nui.nvim',
       -- "3rd/image.nvim", -- Optional image support in preview window: See `# Preview Mode` for more information
     },
+    config = function()
+      require('neo-tree').setup()
+
+      vim.keymap.set('n', '<leader>n', '<cmd>Neotree focus toggle<cr>', { noremap = true, silent = true, desc = 'Toggle [N]eoTree' })
+    end,
   },
 }
