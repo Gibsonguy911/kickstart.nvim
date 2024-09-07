@@ -5,7 +5,7 @@ return {
     version = 'v0.9.2',
     build = ':TSUpdate',
     opts = {
-      ensure_installed = { 'c_sharp', 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'vim', 'vimdoc' },
+      ensure_installed = { 'c_sharp', 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'regex', 'vim', 'vimdoc' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
